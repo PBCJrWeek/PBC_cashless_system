@@ -234,6 +234,37 @@ function App() {
     }
   }
 
+  async function voidTransaction(transactionId) {
+    const confirmed = window.confirm(
+      "Void this charge? This will add the amount back to the camper balance and keep an audit trail."
+    );
+
+    if (!confirmed) return;
+
+    setSavingAction(true);
+    setAppMessage("");
+
+    try {
+      const { data, error } = await supabase.rpc("void_charge_transaction", {
+        p_transaction_id: transactionId,
+      });
+
+      if (error) throw error;
+
+      const result = Array.isArray(data) ? data[0] : data;
+      if (!result?.success) {
+        throw new Error(result?.message || "The transaction could not be voided.");
+      }
+
+      setAppMessage(result.message || "Transaction voided.");
+      await refreshData();
+    } catch (error) {
+      setAppMessage(normalizeError(error, "Could not void transaction."));
+    } finally {
+      setSavingAction(false);
+    }
+  }
+
   async function importItemsCsv(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -324,9 +355,8 @@ function App() {
           .order("item_name", { ascending: true }),
         supabase
           .from("transactions")
-          .select(
-            "id, transaction_type, amount_cents, note, created_at, campers(full_name, camper_id), store_items(item_name, barcode_value)"
-          )
+          .select("id, transaction_type, amount_cents, note, created_at, campers(full_name, camper_id), store_items(item_name, barcode_value)"
+  )
           .order("created_at", { ascending: false })
           .limit(500),
       ]);
@@ -1163,6 +1193,7 @@ function App() {
                 <option value="all">All</option>
                 <option value="charge">Charges</option>
                 <option value="deposit">Deposits</option>
+                <option value="void">Voids</option>
               </select>
             </label>
 
@@ -1210,21 +1241,46 @@ function App() {
               <div>Amount</div>
             </div>
             <div className="report-body">
-              {filteredTransactions.map((entry) => (
-                <div key={entry.id} className="report-row">
-                  <div>{formatDate(entry.created_at)}</div>
-                  <div className={`pill ${entry.transaction_type}`}>{entry.transaction_type}</div>
-                  <div>
-                    <div>{entry.campers?.full_name ?? "Unknown camper"}</div>
-                    <div className="muted">{entry.campers?.camper_id ?? ""}</div>
-                  </div>
-                  <div>
-                    <div>{entry.store_items?.item_name || entry.note || "—"}</div>
-                    <div className="muted">{entry.note && entry.store_items?.item_name ? entry.note : ""}</div>
-                  </div>
-                  <div>{formatMoneyFromCents(entry.amount_cents)}</div>
-                </div>
-              ))}
+             {filteredTransactions.map((entry) => {
+  const canVoid = entry.transaction_type === "charge" && !entry.voided_at;
+
+  return (
+    <div key={entry.id} className="report-row">
+      <div>{formatDate(entry.created_at)}</div>
+
+      <div>
+        <div className={`pill ${entry.transaction_type}`}>{entry.transaction_type}</div>
+        {entry.voided_at ? <div className="muted">Voided</div> : null}
+      </div>
+
+      <div>
+        <div>{entry.campers?.full_name ?? "Unknown camper"}</div>
+        <div className="muted">{entry.campers?.camper_id ?? ""}</div>
+      </div>
+
+      <div>
+        <div>{entry.store_items?.item_name || entry.note || "—"}</div>
+        <div className="muted">
+          {entry.note && entry.store_items?.item_name ? entry.note : ""}
+        </div>
+      </div>
+
+      <div>
+        <div>{formatMoneyFromCents(entry.amount_cents)}</div>
+        {canVoid ? (
+          <button
+            type="button"
+            onClick={() => voidTransaction(entry.id)}
+            disabled={savingAction}
+            style={{ marginTop: "0.35rem" }}
+          >
+            Void
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+})}
               {!filteredTransactions.length ? (
                 <div className="empty">No transactions match the current filters.</div>
               ) : null}
