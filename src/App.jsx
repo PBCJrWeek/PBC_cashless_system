@@ -623,7 +623,7 @@ function App() {
       <main className="page">
         <section className="auth-card">
           <div>
-            <h1>Bible Camp Store Checkout</h1>
+            <h1>PBC Cashless System</h1>
             <p className="muted">
               Sign in for camper balances, barcode checkout, deposits, and reports.
             </p>
@@ -687,7 +687,7 @@ function App() {
       <div className="app-shell">
         <header className="topbar">
           <div>
-            <h1>Bible Camp Store Checkout</h1>
+            <h1>PBC Cashless System</h1>
             <p className="muted">
               Camper lookup, barcode charging, deposits, and transaction reports.
             </p>
