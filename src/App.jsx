@@ -1150,7 +1150,7 @@ function App() {
                     </button>
                   </form>
                 ) : (
-                  <div className="items-list" style={{ maxHeight: "4000px", overflowY: "auto" }}>
+                  <div className="items-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     {items.map((item) => (
                       <button
                         key={item.id}
