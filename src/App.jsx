@@ -1150,8 +1150,8 @@ function App() {
                     </button>
                   </form>
                 ) : (
-                  <div className="items-list">
-                    {items.slice(0, 8).map((item) => (
+                  <div className="items-list" style={{ maxHeight: "4000px", overflowY: "auto" }}>
+                    {items.map((item) => (
                       <button
                         key={item.id}
                         type="button"
