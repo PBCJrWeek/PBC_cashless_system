@@ -10,7 +10,7 @@ import {
   supabase,
 } from "./lib";
 
-const QUICK_AMOUNTS = [100, 200, 300, 500];
+const QUICK_AMOUNTS = [50, 100, 200, 300];
 const INITIAL_AUTH = { email: "", password: "" };
 const INITIAL_CAMPER_FORM = {
   camper_id: "",
